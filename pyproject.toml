@@ -1,7 +1,14 @@
 [project]
-name = "vehicle-insurance"
-version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
-requires-python = ">=3.12"
-dependencies = []
+name = "vehicle-insurance"  # The name users will use to install: pip install vehicle-insurance
+version = "0.1.0"  # Semantic versioning: MAJOR.MINOR.PATCH
+description = "Add your description here"  # Short description shown on PyPI
+readme = "README.md"  # Path to the README file (shown on PyPI)
+requires-python = ">=3.12"  # Minimum Python version required to use this package
+
+# Runtime dependencies: packages required when using your package
+dependencies = [
+    "ipykernel>=7.1.0",
+    "numpy>=2.3.4",
+    "pymongo[srv]>=4.15.3", # MongoDB driver with DNS seedlist support
+]
+
