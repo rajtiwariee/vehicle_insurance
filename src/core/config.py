@@ -15,13 +15,13 @@ class Settings(BaseSettings):
     database_name: str = "Proj1"
     collection_name: str = "Proj1-Data"
     database_username: str | None = None
-    aws_access_key_id: str | None = None
-    aws_secret_access_key: str | None = None
-    aws_region_name: str | None = Field(
+    AWS_ACCESS_KEY_ID: str
+    AWS_SECRET_ACCESS_KEY: str
+    AWS_REGION_NAME: str | None = Field(
         default=None,
         validation_alias=AliasChoices("AWS_REGION_NAME", "AWS_REGION"),
     )
-    aws_bucket_name: str | None = None
+    AWS_BUCKET_NAME: str
     database_url: str | None = Field(
         default=None,
         validation_alias=AliasChoices("DATABASE_URL", "MONGODB_URL"),
@@ -89,7 +89,10 @@ class Settings(BaseSettings):
     MODEL Evaluation related constants
     """
     MODEL_EVALUATION_CHANGED_THRESHOLD_SCORE: float = 0.02
-    MODEL_BUCKET_NAME:str = "my-model-mlopsproj"
+    MODEL_BUCKET_NAME: str = Field(
+        default=None,
+        validation_alias=AliasChoices("MODEL_BUCKET_NAME", "AWS_BUCKET_NAME"),
+    )
     MODEL_PUSHER_S3_KEY:str = "model-registry"
 
 

@@ -1,40 +1,36 @@
 import sys
 from src.utils.exception import MyException
 from src.utils.logger import get_logger
-logger = get_logger(__name__)
-
-
 from src.components.data_ingestion import DataIngestion
 from src.components.data_validation import DataValidation
 from src.components.data_transformation import DataTransformation
 from src.components.model_trainer import ModelTrainer
-# from src.components.model_evaluation import ModelEvaluation
-# from src.components.model_pusher import ModelPusher
-
+from src.components.model_evaluation import ModelEvaluation
+from src.components.model_pusher import ModelPusher
 from src.entity.config_entity import (DataIngestionConfig,
                                           DataValidationConfig,
                                           DataTransformationConfig,
-                                          ModelTrainerConfig,)
-                                        #   ModelEvaluationConfig,
-                                        #   ModelPusherConfig)
+                                          ModelTrainerConfig,
+                                          ModelEvaluationConfig,
+                                          ModelPusherConfig)
                                           
 from src.entity.artifact_entity import (DataIngestionArtifact,
                                             DataValidationArtifact,
                                             DataTransformationArtifact,
-                                            ModelTrainerArtifact,)
-                                            # ModelEvaluationArtifact,
-                                            # ModelPusherArtifact)
+                                            ModelTrainerArtifact,
+                                            ModelEvaluationArtifact,
+                                            ModelPusherArtifact)
 
 
-
+logger = get_logger(__name__)
 class TrainPipeline:
     def __init__(self):
         self.data_ingestion_config = DataIngestionConfig()
         self.data_validation_config = DataValidationConfig()
         self.data_transformation_config = DataTransformationConfig()
         self.model_trainer_config = ModelTrainerConfig()
-        # self.model_evaluation_config = ModelEvaluationConfig()
-        # self.model_pusher_config = ModelPusherConfig()
+        self.model_evaluation_config = ModelEvaluationConfig()
+        self.model_pusher_config = ModelPusherConfig()
 
 
     
@@ -99,6 +95,33 @@ class TrainPipeline:
             raise MyException(e, sys)
         
 
+    def start_model_evaluation(self, data_ingestion_artifact: DataIngestionArtifact,
+                               model_trainer_artifact: ModelTrainerArtifact):
+        try:
+            logger.info("Entered the start_model_evaluation method of TrainPipeline class")
+            
+            model_eval = ModelEvaluation(model_eval_config=self.model_evaluation_config,
+                                          data_ingestion_artifact=data_ingestion_artifact,
+                                          model_trainer_artifact=model_trainer_artifact)
+            model_eval_artifact = model_eval.initiate_model_evaluation()
+            logger.info("Exited the start_model_evaluation method of TrainPipeline class")
+            return model_eval_artifact
+        except Exception as e:
+            raise MyException(e, sys)
+        
+        
+    def start_model_pusher(self, model_eval_artifact: ModelEvaluationArtifact):
+        try:
+            logger.info("Entered the start_model_pusher method of TrainPipeline class")
+            model_pusher = ModelPusher(
+                                       model_evaluation_artifact=model_eval_artifact,
+                                       model_pusher_config=self.model_pusher_config)
+            model_pusher_artifact = model_pusher.initiate_model_pusher()
+
+            return model_pusher_artifact
+        except Exception as e:
+            raise MyException(e, sys)
+        
     def run_pipeline(self, ) -> None:
         """
         This method of TrainPipeline class is responsible for running complete pipeline
@@ -120,6 +143,19 @@ class TrainPipeline:
             logger.info(f'Starting model trainer')
             model_trainer_artifact = self.start_model_trainer(data_transformation_artifact=data_transformation_artifact)
             logger.info(f'Model trainer {model_trainer_artifact}')   
+            
+            logger.info('Starting model evaluation')
+            model_eval_artifact = self.start_model_evaluation(data_ingestion_artifact=data_ingestion_artifact,
+                                                             model_trainer_artifact=model_trainer_artifact)
+            logger.info(f'Model evaluation {model_eval_artifact}')
+            
+            if model_eval_artifact.is_model_accepted:
+                logger.info('Starting model pusher')
+                model_pusher_artifact = self.start_model_pusher(model_eval_artifact=model_eval_artifact)
+                logger.info(f'Model pusher {model_pusher_artifact}')
+            else:
+                logger.info("Model underperforms existing baseline; skipping push.")
+                raise Exception('Model not accepted')      
             
         except Exception as e:
             raise MyException(e, sys)
