@@ -55,10 +55,10 @@ def setup_central_logger(
 
     # Determine log levels from settings, environment variables, or parameters
     if console_log_level is None:
-        if settings is not None:
+        if settings is not None and hasattr(settings, "CONSOLE_LOG_LEVEL"):
             console_log_level = settings.CONSOLE_LOG_LEVEL
         else:
-            console_log_level = os.getenv("CONSOLE_LOG_LEVEL", "WARNING")
+            console_log_level = os.getenv("CONSOLE_LOG_LEVEL", log_level)
     if file_log_level is None:
         if settings is not None:
             file_log_level = settings.FILE_LOG_LEVEL
@@ -66,7 +66,7 @@ def setup_central_logger(
             file_log_level = os.getenv("FILE_LOG_LEVEL", log_level)
 
     # Create logs directory if it doesn't exist
-    ROOT_DIR = Path(__file__).resolve().parent.parent
+    ROOT_DIR = Path(__file__).resolve().parents[2]
     log_dir = Path(f"{ROOT_DIR}/logs")
     log_dir.mkdir(exist_ok=True)
 
@@ -89,7 +89,7 @@ def setup_central_logger(
     console_handler.setLevel(getattr(logging, console_log_level.upper()))
 
     # Create central logger - set to lowest level to allow handlers to filter
-    _central_logger = logging.getLogger("cctv_analyzer")
+    _central_logger = logging.getLogger("vehicle_insurance")
     min_level = min(
         getattr(logging, console_log_level.upper()),
         getattr(logging, file_log_level.upper()),
