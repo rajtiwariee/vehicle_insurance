@@ -6,22 +6,22 @@ logger = get_logger(__name__)
 
 from src.components.data_ingestion import DataIngestion
 from src.components.data_validation import DataValidation
-# from src.components.data_transformation import DataTransformation
-# from src.components.model_trainer import ModelTrainer
+from src.components.data_transformation import DataTransformation
+from src.components.model_trainer import ModelTrainer
 # from src.components.model_evaluation import ModelEvaluation
 # from src.components.model_pusher import ModelPusher
 
 from src.entity.config_entity import (DataIngestionConfig,
-                                          DataValidationConfig,)
-                                        #   DataTransformationConfig,
-                                        #   ModelTrainerConfig,
+                                          DataValidationConfig,
+                                          DataTransformationConfig,
+                                          ModelTrainerConfig,)
                                         #   ModelEvaluationConfig,
                                         #   ModelPusherConfig)
                                           
 from src.entity.artifact_entity import (DataIngestionArtifact,
-                                            DataValidationArtifact,)
-                                            # DataTransformationArtifact,
-                                            # ModelTrainerArtifact,
+                                            DataValidationArtifact,
+                                            DataTransformationArtifact,
+                                            ModelTrainerArtifact,)
                                             # ModelEvaluationArtifact,
                                             # ModelPusherArtifact)
 
@@ -31,8 +31,8 @@ class TrainPipeline:
     def __init__(self):
         self.data_ingestion_config = DataIngestionConfig()
         self.data_validation_config = DataValidationConfig()
-        # self.data_transformation_config = DataTransformationConfig()
-        # self.model_trainer_config = ModelTrainerConfig()
+        self.data_transformation_config = DataTransformationConfig()
+        self.model_trainer_config = ModelTrainerConfig()
         # self.model_evaluation_config = ModelEvaluationConfig()
         # self.model_pusher_config = ModelPusherConfig()
 
@@ -73,6 +73,31 @@ class TrainPipeline:
         except Exception as e:
             raise MyException(e, sys) from e
         
+    def start_data_transformation(self, data_ingestion_artifact: DataIngestionArtifact,
+                                  data_validation_artifact: DataValidationArtifact) -> DataTransformationArtifact:
+        try:
+            logger.info("Entered the start_data_transformation method of TrainPipeline class")
+
+            data_transformation = DataTransformation(data_ingestion_artifact=data_ingestion_artifact,
+                                                       data_validation_artifact=data_validation_artifact,
+                                                       data_transformation_config=self.data_transformation_config)
+            data_transformation_artifact = data_transformation.initiate_data_transformation()
+            logger.info("Exited the start_data_transformation method of TrainPipeline class")
+            return data_transformation_artifact
+        except Exception as e:
+            raise MyException(e, sys)
+        
+    def start_model_trainer(self, data_transformation_artifact: DataTransformationArtifact):
+        try:
+            logger.info("Entered the start_model_trainer method of TrainPipeline class")
+            model_trainer = ModelTrainer(model_trainer_config=self.model_trainer_config,
+                                         data_transformation_artifact=data_transformation_artifact)
+            model_trainer_artifact = model_trainer.initiate_model_trainer()
+            logger.info("Exited the start_model_trainer method of TrainPipeline class")
+            return model_trainer_artifact
+        except Exception as e:
+            raise MyException(e, sys)
+        
 
     def run_pipeline(self, ) -> None:
         """
@@ -85,7 +110,16 @@ class TrainPipeline:
             logger.info(f'Data ingestion {data_ingestion_artifact}')
             logger.info(f'Starting data validation')
             data_validation_artifact = self.start_data_validation(data_ingestion_artifact=data_ingestion_artifact)
-            logger.info(f'Data validation {data_validation_artifact}')          
+            logger.info(f'Data validation {data_validation_artifact}')   
+            
+            logger.info(f'Starting data transformation')
+            data_transformation_artifact = self.start_data_transformation(data_ingestion_artifact=data_ingestion_artifact,
+            data_validation_artifact=data_validation_artifact)
+            logger.info(f'Data transformation {data_transformation_artifact}')   
+            
+            logger.info(f'Starting model trainer')
+            model_trainer_artifact = self.start_model_trainer(data_transformation_artifact=data_transformation_artifact)
+            logger.info(f'Model trainer {model_trainer_artifact}')   
             
         except Exception as e:
             raise MyException(e, sys)
