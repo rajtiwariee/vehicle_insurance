@@ -58,6 +58,8 @@ connection string = mongodb+srv://rajtiwariee_db_user:<db_password>@cluster0.sgq
 21. Now work on the "Data Transformation" component the way we did in above step. (add estimator.py to entity folder)
 22. Now work on the "Model Trainer" component the way we did in above step. (add class to estimator.py in entity folder)
 
+*** we will convert our model to onnx format ***
+
 23. Before moving to next component of Model Evaluation, some AWS services setup is needed:
       * Login to AWS console.
       * Keep region set as - us-east-1
