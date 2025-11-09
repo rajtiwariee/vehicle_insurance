@@ -15,13 +15,16 @@ class Settings(BaseSettings):
     database_name: str = "Proj1"
     collection_name: str = "Proj1-Data"
     database_username: str | None = None
-    AWS_ACCESS_KEY_ID: str
-    AWS_SECRET_ACCESS_KEY: str
+    AWS_ACCESS_KEY_ID: str = os.getenv("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY: str = os.getenv("AWS_SECRET_ACCESS_KEY")
     AWS_REGION_NAME: str | None = Field(
-        default=None,
+        default="ap-south-1",
         validation_alias=AliasChoices("AWS_REGION_NAME", "AWS_REGION"),
     )
-    AWS_BUCKET_NAME: str
+    AWS_BUCKET_NAME: str = Field(
+        default="mlops-test-bucket-23",
+        validation_alias=AliasChoices("AWS_BUCKET_NAME", "BUCKET_NAME"),
+    )
     database_url: str | None = Field(
         default=None,
         validation_alias=AliasChoices("DATABASE_URL", "MONGODB_URL"),
@@ -90,14 +93,14 @@ class Settings(BaseSettings):
     """
     MODEL_EVALUATION_CHANGED_THRESHOLD_SCORE: float = 0.02
     MODEL_BUCKET_NAME: str = Field(
-        default=None,
+        default="mlops-test-bucket-23",
         validation_alias=AliasChoices("MODEL_BUCKET_NAME", "AWS_BUCKET_NAME"),
     )
     MODEL_PUSHER_S3_KEY:str = "model-registry"
 
 
     APP_HOST: str = "0.0.0.0"
-    APP_PORT: int = 5001
+    APP_PORT: int = 5000
 
 
 settings = Settings()
